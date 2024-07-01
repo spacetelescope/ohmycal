@@ -2,3 +2,4 @@
 
 **{{meta.name}} {{meta.version}}**
 
+{{ func:get_github_release_notes_auto() }}

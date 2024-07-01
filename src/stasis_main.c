@@ -9,6 +9,7 @@
 #define OPT_NO_DOCKER 1001
 #define OPT_NO_ARTIFACTORY 1002
 #define OPT_NO_TESTING 1003
+#define OPT_OVERWRITE 1004
 static struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'V'},
@@ -18,6 +19,7 @@ static struct option long_options[] = {
         {"verbose", no_argument, 0, 'v'},
         {"unbuffered", no_argument, 0, 'U'},
         {"update-base", no_argument, 0, OPT_ALWAYS_UPDATE_BASE},
+        {"overwrite", no_argument, 0, OPT_OVERWRITE},
         {"no-docker", no_argument, 0, OPT_NO_DOCKER},
         {"no-artifactory", no_argument, 0, OPT_NO_ARTIFACTORY},
         {"no-testing", no_argument, 0, OPT_NO_TESTING},
@@ -33,6 +35,7 @@ const char *long_options_help[] = {
         "Increase output verbosity",
         "Disable line buffering",
         "Update conda installation prior to STASIS environment creation",
+        "Overwrite an existing release",
         "Do not build docker images",
         "Do not upload artifacts to Artifactory",
         "Do not execute test scripts",
@@ -193,6 +196,9 @@ int main(int argc, char *argv[]) {
             case 'v':
                 globals.verbose = true;
                 break;
+            case OPT_OVERWRITE:
+                globals.enable_overwrite = true;
+                break;
             case OPT_NO_DOCKER:
                 globals.enable_docker = false;
                 user_disabled_docker = true;
@@ -259,6 +265,11 @@ int main(int argc, char *argv[]) {
     tpl_register("deploy.docker.registry", &ctx.deploy.docker.registry);
     tpl_register("workaround.tox_posargs", &globals.workaround.tox_posargs);
     tpl_register("workaround.conda_reactivate", &globals.workaround.conda_reactivate);
+
+    // Expose function(s) to the template engine
+    // Prototypes can be found in template_func_proto.h
+    tpl_register_func("get_github_release_notes", &get_github_release_notes_tplfunc_entrypoint, 3, NULL);
+    tpl_register_func("get_github_release_notes_auto", &get_github_release_notes_auto_tplfunc_entrypoint, 1, &ctx);
 
     // Set up PREFIX/etc directory information
     // The user may manipulate the base directory path with STASIS_SYSCONFDIR
@@ -344,6 +355,12 @@ int main(int argc, char *argv[]) {
     delivery_tests_show(&ctx);
     if (globals.verbose) {
         //delivery_runtime_show(&ctx);
+    }
+
+    // Safety gate: Avoid clobbering a delivery unless the user wants that behavior
+    if (delivery_exists(&ctx)) {
+        msg(STASIS_MSG_ERROR | STASIS_MSG_L1, "Refusing to overwrite delivery: %s\nUse --overwrite to enable release clobbering.\n", ctx.info.release_name);
+        exit(1);
     }
 
     msg(STASIS_MSG_L1, "Conda setup\n");

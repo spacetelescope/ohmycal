@@ -153,7 +153,7 @@ int ini_getval(struct INIFILE *ini, char *section_name, char *key, int type, uni
         case INIVAL_TYPE_STR_ARRAY:
             strcpy(tbufp, data->value);
             *data->value = '\0';
-            for (size_t i = 0; (token = strsep(&tbufp, "\n")) != NULL; i++) {
+            while ((token = strsep(&tbufp, "\n")) != NULL) {
                 lstrip(token);
                 strcat(data->value, token);
                 strcat(data->value, "\n");

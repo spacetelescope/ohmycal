@@ -204,7 +204,7 @@ void test_split() {
     for (size_t i = 0; i < sizeof(tc) / sizeof(*tc); i++) {
         char **result;
         result = split(tc[i].data, tc[i].delim, tc[i].max_split);
-        STASIS_ASSERT(strcmp_array(result, tc[i].expected) == 0, "Split failed");
+        STASIS_ASSERT(strcmp_array((const char **) result, tc[i].expected) == 0, "Split failed");
         GENERIC_ARRAY_FREE(result);
     }
 }
@@ -223,7 +223,7 @@ void test_join() {
     };
     for (size_t i = 0; i < sizeof(tc) / sizeof(*tc); i++) {
         char *result;
-        result = join(tc[i].data, tc[i].delim);
+        result = join((char **) tc[i].data, tc[i].delim);
         STASIS_ASSERT(strcmp(result ? result : "", tc[i].expected) == 0, "failed to join array");
         guard_free(result);
     }
@@ -276,19 +276,19 @@ void test_substring_between() {
 
 void test_strdeldup() {
     struct testcase {
-        const char **data;
+        char **data;
         const char **expected;
     };
     struct testcase tc[] = {
         {.data = NULL, .expected = NULL},
-        {.data = (const char *[]) {"a", "a", "a", "b", "b", "b", "c", "c", "c", NULL}, .expected = (const char *[]) {"a", "b", "c", NULL}},
-        {.data = (const char *[]) {"a", "b", "c", "a", "b", "c", "a", "b", "c", NULL}, .expected = (const char *[]) {"a", "b", "c", NULL}},
-        {.data = (const char *[]) {"apple", "banana", "coconut", NULL}, .expected = (const char *[]) {"apple", "banana", "coconut", NULL}},
-        {.data = (const char *[]) {"apple", "banana", "apple", "coconut", NULL}, .expected = (const char *[]) {"apple", "banana", "coconut", NULL}},
+        {.data = (char *[]) {"a", "a", "a", "b", "b", "b", "c", "c", "c", NULL}, .expected = (const char *[]) {"a", "b", "c", NULL}},
+        {.data = (char *[]) {"a", "b", "c", "a", "b", "c", "a", "b", "c", NULL}, .expected = (const char *[]) {"a", "b", "c", NULL}},
+        {.data = (char *[]) {"apple", "banana", "coconut", NULL}, .expected = (const char *[]) {"apple", "banana", "coconut", NULL}},
+        {.data = (char *[]) {"apple", "banana", "apple", "coconut", NULL}, .expected = (const char *[]) {"apple", "banana", "coconut", NULL}},
     };
     for (size_t i = 0; i < sizeof(tc) / sizeof(*tc); i++) {
         char **result = strdeldup(tc[i].data);
-        STASIS_ASSERT(strcmp_array(result, tc[i].expected) == 0, "incorrect number of duplicates removed");
+        STASIS_ASSERT(strcmp_array((const char **) result, tc[i].expected) == 0, "incorrect number of duplicates removed");
         GENERIC_ARRAY_FREE(result);
     }
 }

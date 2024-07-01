@@ -32,7 +32,7 @@ int micromamba(struct MicromambaInfo *info, char *command, ...) {
     sprintf(mmbin, "%s/micromamba", info->micromamba_prefix);
 
     if (access(mmbin, F_OK)) {
-        char untarcmd[PATH_MAX];
+        char untarcmd[PATH_MAX * 2];
         mkdirs(info->micromamba_prefix, 0755);
         sprintf(untarcmd, "tar -xvf %s -C %s --strip-components=1 bin/micromamba 1>/dev/null", installer_path, info->micromamba_prefix);
         system(untarcmd);

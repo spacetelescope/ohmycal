@@ -40,28 +40,42 @@ char *tpl_render(char *str);
  */
 int tpl_render_to_file(char *str, const char *filename);
 
-struct tplfunc_frame *tpl_getfunc(char *key);
-struct tplfunc_frame;
-typedef int tplfunc(struct tplfunc_frame *frame, void *result);
+typedef int tplfunc(void *frame, void *data_out);
+
 struct tplfunc_frame {
-    char *key;
-    tplfunc *func;
-    int argc;
+    char *key;                 ///< Name of the function
+    tplfunc *func;             ///< Pointer to the function
+    void *data_in;             ///< Pointer to internal data (can be NULL)
+    int argc;                  ///< Maximum number of arguments to accept
     union {
-        char **t_char_refptr;
-        char *t_char_ptr;
-        void *t_void_ptr;
-        int *t_int_ptr;
-        unsigned *t_uint_ptr;
-        float *t_float_ptr;
-        double *t_double_ptr;
-        char t_char;
-        int t_int;
-        unsigned t_uint;
-        float t_float;
-        double t_double;
+        char **t_char_refptr;  ///< &pointer
+        char *t_char_ptr;      ///< pointer
+        void *t_void_ptr;      ///< pointer to void
+        int *t_int_ptr;        ///< pointer to int
+        unsigned *t_uint_ptr;  ///< pointer to unsigned int
+        float *t_float_ptr;    ///< pointer to float
+        double *t_double_ptr;  ///< pointer to double
+        char t_char;           ///< type of char
+        int t_int;             ///< type of int
+        unsigned t_uint;       ///< type of unsigned int
+        float t_float;         ///< type of float
+        double t_double;       ///< type of double
     } argv[10]; // accept up to 10 arguments
 };
-void tpl_register_func(char *key, struct tplfunc_frame *frame);
+
+/**
+ * Register a template function
+ * @param key function name to expose to "func:" interface
+ * @param tplfunc_ptr pointer to function of type tplfunc
+ * @param argc number of function arguments to accept
+ */
+void tpl_register_func(char *key, void *tplfunc_ptr, int argc, void *data_in);
+
+/**
+ * Get the function frame associated with a template function
+ * @param key function name
+ * @return tplfunc_frame structure
+ */
+struct tplfunc_frame *tpl_getfunc(char *key);
 
 #endif //STASIS_TEMPLATE_H

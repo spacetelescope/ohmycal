@@ -1419,7 +1419,7 @@ void delivery_install_conda(char *install_script, char *conda_install_dir) {
 
             // Proceed with the installation
             // -b = batch mode (non-interactive)
-            char cmd[255] = {0};
+            char cmd[PATH_MAX] = {0};
             snprintf(cmd, sizeof(cmd) - 1, "%s %s -b -p %s",
                      find_program("bash"),
                      install_script,
@@ -1476,7 +1476,7 @@ void delivery_defer_packages(struct Delivery *ctx, int type) {
 
     struct StrList *filtered = NULL;
     filtered = strlist_init();
-    for (size_t i = 0, z = 0; i < strlist_count(dataptr); i++) {
+    for (size_t i = 0; i < strlist_count(dataptr); i++) {
         int ignore_pkg = 0;
 
         name = strlist_item(dataptr, i);
@@ -1494,7 +1494,6 @@ void delivery_defer_packages(struct Delivery *ctx, int type) {
                 if (strstr(name, ctx->tests[x].name)) {
                     version = ctx->tests[x].version;
                     ignore_pkg = 1;
-                    z++;
                     break;
                 }
             }
@@ -2163,5 +2162,22 @@ int delivery_fixup_test_results(struct Delivery *ctx) {
     }
 
     closedir(dp);
+    return 0;
+}
+
+int delivery_exists(struct Delivery *ctx) {
+    // TODO: scan artifactory repo for the same information
+    char release_pattern[PATH_MAX] = {0};
+    sprintf(release_pattern, "*%s*", ctx->info.release_name);
+    struct StrList *files = listdir(ctx->storage.delivery_dir);
+    for (size_t i = 0; i < strlist_count(files); i++) {
+        char *filename = strlist_item(files, i);
+        int release_exists = fnmatch(release_pattern, filename, FNM_PATHNAME);
+        if (!globals.enable_overwrite && !release_exists) {
+            guard_strlist_free(&files);
+            return 1;
+        }
+    }
+    guard_strlist_free(&files);
     return 0;
 }

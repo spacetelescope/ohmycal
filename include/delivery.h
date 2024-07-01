@@ -391,4 +391,11 @@ int *bootstrap_build_info(struct Delivery *ctx);
 
 int delivery_dump_metadata(struct Delivery *ctx);
 
+/**
+ * Determine whether a release on-disk matches the release name in use
+ * @param ctx Delivery context
+ * @return 0=no, 1=yes
+ */
+int delivery_exists(struct Delivery *ctx);
+
 #endif //STASIS_DELIVERY_H

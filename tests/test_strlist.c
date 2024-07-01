@@ -144,7 +144,7 @@ void test_strlist_append_file() {
             right = expected[z];
             STASIS_ASSERT(strcmp(left, right) == 0, "file content is different than expected");
         }
-        STASIS_ASSERT(strcmp_array(list->data, expected) == 0, "file contents does not match expected values");
+        STASIS_ASSERT(strcmp_array((const char **) list->data, expected) == 0, "file contents does not match expected values");
         guard_strlist_free(&list);
     }
 }

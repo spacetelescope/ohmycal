@@ -146,16 +146,16 @@ static struct StrList *attributes_to_strlist(xmlTextReaderPtr reader) {
 
 static int read_xml_data(xmlTextReaderPtr reader, struct JUNIT_Testsuite **testsuite) {
     const xmlChar *name;
-    const xmlChar *value;
+    //const xmlChar *value;
 
     name = xmlTextReaderConstName(reader);
     if (!name) {
         // name could not be converted to string
         name = BAD_CAST "--";
     }
-    value = xmlTextReaderConstValue(reader);
+    //value = xmlTextReaderConstValue(reader);
     const char *node_name = (char *) name;
-    const char *node_value = (char *) value;
+    //const char *node_value = (char *) value;
     
     struct StrList *attrs = attributes_to_strlist(reader);
     if (attrs && strlist_count(attrs)) {

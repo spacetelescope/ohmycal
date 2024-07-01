@@ -9,28 +9,36 @@ extern unsigned tpl_pool_func_used;
 static int adder(struct tplfunc_frame *frame, void *result) {
     int a = (int) strtol(frame->argv[0].t_char_ptr, NULL, 10);
     int b = (int) strtol(frame->argv[1].t_char_ptr, NULL, 10);
-    sprintf(result, "%d", a + b);
+    char **ptr = (char **) result;
+    *ptr = calloc(100, sizeof(*ptr));
+    sprintf(*ptr, "%d", a + b);
     return 0;
 }
 
 static int subtractor(struct tplfunc_frame *frame, void *result) {
     int a = (int) strtol(frame->argv[0].t_char_ptr, NULL, 10);
     int b = (int) strtol(frame->argv[1].t_char_ptr, NULL, 10);
-    sprintf(result, "%d", a - b);
+    char **ptr = (char **) result;
+    *ptr = calloc(100, sizeof(*ptr));
+    sprintf(*ptr, "%d", a - b);
     return 0;
 }
 
 static int multiplier(struct tplfunc_frame *frame, void *result) {
     int a = (int) strtol(frame->argv[0].t_char_ptr, NULL, 10);
     int b = (int) strtol(frame->argv[1].t_char_ptr, NULL, 10);
-    sprintf(result, "%d", a * b);
+    char **ptr = (char **) result;
+    *ptr = calloc(100, sizeof(*ptr));
+    sprintf(*ptr, "%d", a * b);
     return 0;
 }
 
 static int divider(struct tplfunc_frame *frame, void *result) {
     int a = (int) strtol(frame->argv[0].t_char_ptr, NULL, 10);
     int b = (int) strtol(frame->argv[1].t_char_ptr, NULL, 10);
-    sprintf(result, "%d", a / b);
+    char **ptr = (char **) result;
+    *ptr = calloc(100, sizeof(*ptr));
+    sprintf(*ptr, "%d", a / b);
     return 0;
 }
 
@@ -59,17 +67,22 @@ void test_tpl_register() {
 
 void test_tpl_register_func() {
     tpl_reset();
-    struct tplfunc_frame tasks[] = {
-            {.key = "add", .argc = 2, .func = adder},
-            {.key = "sub", .argc = 2, .func = subtractor},
-            {.key = "mul", .argc = 2, .func = multiplier},
-            {.key = "div", .argc = 2, .func = divider},
+    struct testcase {
+        const char *key;
+        int argc;
+        void *func;
     };
-    tpl_register_func("add", &tasks[0]);
-    tpl_register_func("sub", &tasks[1]);
-    tpl_register_func("mul", &tasks[2]);
-    tpl_register_func("div", &tasks[3]);
-    STASIS_ASSERT(tpl_pool_func_used == sizeof(tasks) / sizeof(*tasks), "unexpected function pool used");
+    struct testcase tc[] = {
+            {.key = "add", .argc = 2, .func = &adder},
+            {.key = "sub", .argc = 2, .func = &subtractor},
+            {.key = "mul", .argc = 2, .func = &multiplier},
+            {.key = "div", .argc = 2, .func = &divider},
+    };
+    tpl_register_func("add", tc[0].func, tc[0].argc, NULL);
+    tpl_register_func("sub", tc[1].func, tc[1].argc, NULL);
+    tpl_register_func("mul", tc[2].func, tc[2].argc, NULL);
+    tpl_register_func("div", tc[3].func, tc[3].argc, NULL);
+    STASIS_ASSERT(tpl_pool_func_used == sizeof(tc) / sizeof(*tc), "unexpected function pool used");
 
     char *result = NULL;
     result = tpl_render("{{ func:add(0,3) }}");
